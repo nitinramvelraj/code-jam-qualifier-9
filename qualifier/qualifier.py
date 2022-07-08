@@ -37,9 +37,7 @@ class RestaurantManager:
         elif request_scope['type'] == 'staff.offduty':
             self.offboard_staff(request_scope)
         else:
-            # print('Order request: {}'.format(request))
             found = self.find_suitable_staff(request_scope)  # One selected member of staff
-            # print('Staf assigned: {}'.format(found))
             full_order = await request.receive()
             await found.send(full_order)
 
@@ -64,24 +62,20 @@ class RestaurantManager:
         # staff
         if isinstance(request_speciality, str):
             request_speciality = self.convert_str_to_list(request_speciality)
-
-        for speciality in request_speciality:
-            staff_can_fulfill = True
-            for staff in self.staff:
-                lst_staff_speciality = self.staff[staff].scope['speciality']
-                if isinstance(lst_staff_speciality, str):
-                    lst_staff_speciality = self.convert_str_to_list(lst_staff_speciality)
-                for staff_speciality in lst_staff_speciality:
-                    if speciality not in staff_speciality:
-                        staff_can_fulfill = False
-                        break
-                    if staff_can_fulfill:
-                        return self.staff[staff]
-                    else:
-                        return self.staff[staff]
-            
         
-
-
-
-
+        selected_staff = None
+        
+        for staff in self.staff:
+            staff_speciality_count = len(request_speciality)
+            lst_staff_speciality = self.staff[staff].scope['speciality']
+            if isinstance(lst_staff_speciality, str):
+                lst_staff_speciality = self.convert_str_to_list(lst_staff_speciality)
+            for speciality in request_speciality:
+                if speciality not in lst_staff_speciality:
+                    break
+                else:
+                    staff_speciality_count -= 1
+            if staff_speciality_count == 0:
+                selected_staff = staff
+                return self.staff[selected_staff]
+        return self.staff[staff]                
